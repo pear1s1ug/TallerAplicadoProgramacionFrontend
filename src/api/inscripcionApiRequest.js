@@ -1,4 +1,4 @@
-const BASE = "http://localhost:8080";
+const BASE = import.meta.env.VITE_API_URL;
 
 const headers = () => {
     const usuario = JSON.parse(sessionStorage.getItem("usuario") || "{}");
