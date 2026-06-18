@@ -34,4 +34,21 @@ export const actualizarHorario = ({ idAlumno, idPeriodo, secciones }) =>
         body: JSON.stringify({ idAlumno, idPeriodo, secciones }),
     }).then((r) => r.json());
 
+export const getPeriodos = () =>
+    fetch(`${BASE}/periodos`, { headers: headers() })
+        .then((r) => r.json());
 
+export const getPreferenciaAlumno = (idAlumno, idPeriodo) =>
+    fetch(`${BASE}/preferencias/alumno/${idAlumno}/${idPeriodo}`, { headers: headers() })
+        .then((r) => r.status === 204 ? null : r.json());
+
+export const guardarPreferenciaAlumno = (idAlumno, data) =>
+    fetch(`${BASE}/preferencias/alumno/${idAlumno}`, {
+        method: "PUT",
+        headers: headers(),
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
+
+export const getAlumnoPorRut = (rut) =>
+    fetch(`${BASE}/alumnos/rut/${rut}`, { headers: headers() })
+        .then((r) => r.status === 404 ? null : r.json());

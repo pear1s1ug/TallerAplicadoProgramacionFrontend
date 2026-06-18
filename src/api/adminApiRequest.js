@@ -1,4 +1,4 @@
-const BASE = "http://localhost:8080";
+const BASE = import.meta.env.VITE_API_URL;
 
 const headers = () => {
     const usuario = JSON.parse(sessionStorage.getItem("usuario") || "{}");
@@ -36,7 +36,6 @@ export const deleteDepartamento = (id) =>
         headers: headers(),
     }).then((r) => r.text());
 
-// Carreras
 export const getCarreras = () =>
     fetch(`${BASE}/carreras`, { headers: headers() })
         .then((r) => r.json());
@@ -61,7 +60,6 @@ export const deleteCarrera = (id) =>
         headers: headers(),
     }).then((r) => r.text());
 
-// Detalle carreras
 export const getAsignaturasByCarrera = (idCarrera) =>
     fetch(`${BASE}/carreras/${idCarrera}/asignaturas`, { headers: headers() })
         .then((r) => r.json());
@@ -78,12 +76,10 @@ export const removeAsignaturaFromCarrera = (idCarrera, idAsignatura) =>
         headers: headers(),
     }).then((r) => r.text());
 
-// Asignaturas
 export const getAsignaturas = () =>
     fetch(`${BASE}/asignaturas`, { headers: headers() })
         .then((r) => r.json());
 
-// Secciones
 export const getSecciones = () =>
     fetch(`${BASE}/secciones`, { headers: headers() })
         .then((r) => r.json());
@@ -98,4 +94,81 @@ export const getDemanda = () =>
 
 export const getDisponibilidadSalas = (dia) =>
     fetch(`${BASE}/salas/disponibilidad?dia=${dia}`, { headers: headers() })
+        .then((r) => r.json());
+
+export const getProfesores = () =>
+    fetch(`${BASE}/profesores`, { headers: headers() })
+        .then((r) => r.json());
+
+export const getJornadas = () =>
+    fetch(`${BASE}/jornadas`, { headers: headers() })
+        .then((r) => r.json());
+
+export const getModalidades = () =>
+    fetch(`${BASE}/modalidades`, { headers: headers() })
+        .then((r) => r.json());
+
+export const getHorarios = () =>
+    fetch(`${BASE}/horarios`, { headers: headers() })
+        .then((r) => r.json());
+
+export const getSalas = () =>
+    fetch(`${BASE}/salas`, { headers: headers() })
+        .then((r) => r.json());
+
+export const getSedes = () =>
+    fetch(`${BASE}/sedes`, { headers: headers() })
+        .then((r) => r.json());
+
+export const crearSeccionConHorarios = (data) =>
+    fetch(`${BASE}/secciones/con-horarios`, {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
+
+export const actualizarSeccionConHorarios = (id, data) =>
+    fetch(`${BASE}/secciones/${id}/con-horarios`, {
+        method: "PUT",
+        headers: headers(),
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
+
+export const eliminarSeccionConHorarios = (id) =>
+    fetch(`${BASE}/secciones/${id}/con-horarios`, {
+        method: "DELETE",
+        headers: headers(),
+    }).then((r) => r.text());
+
+export const ejecutarFase1 = (data) =>
+    fetch(`${BASE}/nexus-match/fase1`, {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
+
+export const ejecutarFase2 = (data) =>
+    fetch(`${BASE}/nexus-match/fase2`, {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
+
+export const ejecutarFase3 = (data) =>
+    fetch(`${BASE}/nexus-match/fase3`, {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
+
+
+export const persistirFase1 = (data) =>
+    fetch(`${BASE}/nexus-match/fase1/persistir`, {
+        method: "POST",
+        headers: headers(),
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
+
+export const getSeccionesNexusTemp = (idPeriodo) =>
+    fetch(`${BASE}/nexus-match/fase1/secciones/${idPeriodo}`, { headers: headers() })
         .then((r) => r.json());

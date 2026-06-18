@@ -23,9 +23,9 @@ export default function DemandaBar({ nombre, inscritos, cupos, ratio }) {
           style={{ width: `${Math.min(porcentaje, 100)}%` }}
         />
       </div>
-      <span className="text-[10px] text-gray-400 dark:text-gray-500 text-right">z
+      <span className="text-[10px] text-gray-400 dark:text-gray-500 text-right">
         {porcentaje}% ocupado
       </span>
     </div>
   );
-}z
+}

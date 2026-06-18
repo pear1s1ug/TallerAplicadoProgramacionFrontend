@@ -5,6 +5,7 @@ import AdminCarrerasScreen         from "../screens/admin/AdminCarrerasScreen";
 import AdminDetalleCarrerasScreen  from "../screens/admin/AdminDetalleCarrerasScreen";
 import AdminSeccionesScreen        from "../screens/admin/AdminSeccionesScreen";
 import AdminSalasScreen            from "../screens/admin/AdminSalasScreen";
+import AdminNexusMatchScreen       from "../screens/admin/AdminNexusMatchScreen";
 
 export default function AdminRoutes() {
   return (
@@ -15,6 +16,7 @@ export default function AdminRoutes() {
       <Route path="detalle-carreras" element={<AdminDetalleCarrerasScreen />} />
       <Route path="secciones"        element={<AdminSeccionesScreen />}       />
       <Route path="salas"            element={<AdminSalasScreen />}           />
+      <Route path="nexus-match"      element={<AdminNexusMatchScreen />} />
       <Route path="*"                element={<Navigate to="home" replace />} />
     </Routes>
   );
