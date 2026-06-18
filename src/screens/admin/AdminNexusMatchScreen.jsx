@@ -3,6 +3,7 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import MainLayout from "../../layouts/MainLayout";
 import { ADMIN_NAV } from "../../config/navConfig";
+import ClusterGraph from "../../components/common/ClusterGraph";
 import {
     getCarreras,
     getProfesores,
@@ -62,6 +63,8 @@ export default function AdminNexusMatchScreen() {
     const [carreras, setCarreras] = useState([]);
     const [idPeriodo, setIdPeriodo] = useState("");
     const [idCarrera, setIdCarrera] = useState("");
+
+    const [tabClusters, setTabClusters] = useState("lista");
 
     const [cupoMinimo, setCupoMinimo] = useState(5);
     const [cupoMaximo, setCupoMaximo] = useState(20);
@@ -220,6 +223,14 @@ export default function AdminNexusMatchScreen() {
                 secciones: seccionesPayload,
                 preferencias: preferenciasPayload,
             });
+
+            const conteo = resultado.clusters.reduce((acc, c) => {
+                acc[c.cluster] = (acc[c.cluster] ?? 0) + 1;
+                return acc;
+            }, {});
+            console.log("clusters con mas de 1 alumno:",
+                Object.entries(conteo).filter(([, v]) => v > 1)
+            );
 
             setResultadoF2(resultado);
 
@@ -470,21 +481,55 @@ export default function AdminNexusMatchScreen() {
                                     </div>
                                 </div>
 
-                                <div className="rounded-2xl p-6 flex flex-col gap-3 shadow-sm bg-white dark:bg-[#1e1e2e]">
-                                    <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
-                                        Clusters de afinidad — {resultadoF2.clusters.length} alumnos
-                                    </p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {Object.entries(
-                                            resultadoF2.clusters.reduce((acc, c) => {
-                                                acc[c.cluster] = [...(acc[c.cluster] ?? []), c.idAlumno];
-                                                return acc;
-                                            }, {})
-                                        ).map(([cluster, alumnos]) => (
-                                            <div key={cluster} className="rounded-xl px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-xs text-blue-700 dark:text-blue-300">
-                                                Cluster {cluster}: alumnos {alumnos.join(", ")}
+                                {/* clusters con tabs */}
+                                <div className="rounded-2xl shadow-sm bg-white dark:bg-[#1e1e2e]">
+                                    <div className="flex gap-1 px-4 pt-4 border-b border-gray-100 dark:border-gray-700">
+                                        <button
+                                            onClick={() => setTabClusters("lista")}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${tabClusters === "lista"
+                                                ? "bg-gray-100 dark:bg-white/10 text-gray-800 dark:text-gray-100"
+                                                : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                                }`}
+                                        >
+                                            Lista
+                                        </button>
+                                        <button
+                                            onClick={() => setTabClusters("grafo")}
+                                            className={`px-3 py-1.5 text-xs font-medium rounded-t-lg transition-colors ${tabClusters === "grafo"
+                                                ? "bg-gray-100 dark:bg-white/10 text-gray-800 dark:text-gray-100"
+                                                : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                                                }`}
+                                        >
+                                            Grafo
+                                        </button>
+                                    </div>
+
+                                    <div className="p-4">
+                                        <p className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-3">
+                                            Clusters de afinidad — {resultadoF2.clusters.length} alumnos
+                                        </p>
+
+                                        {tabClusters === "lista" && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {Object.entries(
+                                                    resultadoF2.clusters.reduce((acc, c) => {
+                                                        acc[c.cluster] = [...(acc[c.cluster] ?? []), c.idAlumno];
+                                                        return acc;
+                                                    }, {})
+                                                ).map(([cluster, alumnos]) => (
+                                                    <div key={cluster} className="rounded-xl px-3 py-2 bg-blue-50 dark:bg-blue-900/30 text-xs text-blue-700 dark:text-blue-300">
+                                                        Cluster {cluster}: alumnos {alumnos.join(", ")}
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        )}
+
+                                        {tabClusters === "grafo" && (
+                                            <ClusterGraph
+                                                clusters={resultadoF2.clusters}
+                                                scores={resultadoF2.scores}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             </>
