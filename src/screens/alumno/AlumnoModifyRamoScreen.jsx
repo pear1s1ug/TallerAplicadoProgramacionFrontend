@@ -84,10 +84,22 @@ export default function AlumnoModifyRamoScreen() {
     }
   };
 
-  // ── Horario ──────────────────────────────────────────────────────────────
+  // ── Horario (CORREGIDO) ───────────────────────────────────────────────────
+  // FIX: el span ya no se calcula dividiendo minutos por 60 (lo que daba
+  // valores fraccionarios como 0.65 para bloques de 39 min, y eso rompía
+  // el rowSpan en HTML — rowspan="0" hace que la celda se expanda hasta
+  // el final de la tabla, desalineando todas las columnas siguientes).
+  // Ahora el span se calcula contando cuántas filas reales (horas únicas)
+  // cubre el bloque.
   const buildHorario = () => {
-    const bloques = {};
     const norm = (s) => s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const minutos = (hhmm) => {
+      const [h, m] = hhmm.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    // 1️⃣ Primera pasada: recolectar los bloques crudos, sin span todavía
+    const bloquesRaw = [];
 
     Object.values(inscripciones).forEach((inscripcion) => {
       const seccion = Object.values(secciones)
@@ -96,25 +108,49 @@ export default function AlumnoModifyRamoScreen() {
       if (!seccion) return;
 
       seccion.horarios.forEach((h) => {
-        const [hi, mi] = h.horario.horaInicio.split(":").map(Number);
-        const [hf, mf] = h.horario.horaFin.split(":").map(Number);
-        const span = ((hf * 60 + mf) - (hi * 60 + mi)) / 60;
-        const horaInicio = h.horario.horaInicio.slice(0, 5);
         const dia = DIA_MAP[norm(h.horario.diaSemana)];
         if (!dia) return;
 
-        if (!bloques[horaInicio]) bloques[horaInicio] = { hora: horaInicio };
-
-        bloques[horaInicio][dia] = {
+        bloquesRaw.push({
+          dia,
+          horaInicio: h.horario.horaInicio.slice(0, 5),
+          horaFin: h.horario.horaFin.slice(0, 5),
           ramo: inscripcion.ramoNombre,
           sala: seccion.sala.nombre,
           seccion: seccion.idSeccion,
-          inicio: horaInicio,
-          fin: h.horario.horaFin.slice(0, 5),
-          span,
           estilo: getEstiloRamo(inscripcion.ramoId),
-        };
+        });
       });
+    });
+
+    // 2️⃣ Horas únicas que realmente existen, ordenadas cronológicamente
+    const horasUnicas = [...new Set(bloquesRaw.map((b) => b.horaInicio))]
+      .sort((a, b) => minutos(a) - minutos(b));
+
+    // 3️⃣ Segunda pasada: armamos bloques[hora][dia] con el span correcto
+    const bloques = {};
+
+    bloquesRaw.forEach((b) => {
+      const finMin = minutos(b.horaFin);
+      const indiceInicio = horasUnicas.indexOf(b.horaInicio);
+
+      let span = 1;
+      for (let i = indiceInicio + 1; i < horasUnicas.length; i++) {
+        if (minutos(horasUnicas[i]) < finMin) span++;
+        else break;
+      }
+
+      if (!bloques[b.horaInicio]) bloques[b.horaInicio] = { hora: b.horaInicio };
+
+      bloques[b.horaInicio][b.dia] = {
+        ramo: b.ramo,
+        sala: b.sala,
+        seccion: b.seccion,
+        inicio: b.horaInicio,
+        fin: b.horaFin,
+        span,
+        estilo: b.estilo,
+      };
     });
 
     return Object.values(bloques).sort((a, b) => a.hora.localeCompare(b.hora));
