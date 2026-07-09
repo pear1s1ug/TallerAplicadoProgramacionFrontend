@@ -70,52 +70,64 @@ export default function AlumnoHorarioScreen() {
     return Object.values(bloques).sort((a, b) => a.hora.localeCompare(b.hora));
   };
 
-  const exportarPDF = async () => {
-    if (!tablaRef.current) return;
+const exportarPDF = async () => {
+  if (!tablaRef.current) return;
 
-    // Guardar estado dark y forzar modo claro
-    const htmlEl = document.documentElement;
-    const teniaDark = htmlEl.classList.contains("dark");
-    htmlEl.classList.remove("dark");
+  // Clonar el elemento y posicionarlo fuera de la vista
+  const clone = tablaRef.current.cloneNode(true);
+  clone.style.position = "fixed";
+  clone.style.top = "-9999px";
+  clone.style.left = "-9999px";
+  clone.style.width = tablaRef.current.offsetWidth + "px";
 
-    // Esperar un tick para que los estilos se apliquen
-    await new Promise((r) => setTimeout(r, 100));
+  // Forzar estilos claros solo en el clon
+  clone.style.backgroundColor = "#ffffff";
+  clone.style.color = "#000000";
 
-    const canvas = await html2canvas(tablaRef.current, {
-      scale: 2,
-      backgroundColor: "#ffffff",
-      useCORS: true,
+  // Quitar clases dark del clon sin tocar el DOM real
+  clone.classList.remove("dark");
+  clone.querySelectorAll("[class]").forEach((el) => {
+    el.classList.forEach((cls) => {
+      if (cls.startsWith("dark:")) el.classList.remove(cls);
     });
+  });
 
-    // Restaurar dark mode si corresponde
-    if (teniaDark) htmlEl.classList.add("dark");
+  document.body.appendChild(clone);
 
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
+  const canvas = await html2canvas(clone, {
+    scale: 2,
+    backgroundColor: "#ffffff",
+    useCORS: true,
+  });
 
-    const fecha = new Date().toLocaleDateString("es-CL", {
-      weekday: "long", year: "numeric", month: "long", day: "numeric"
-    });
+  document.body.removeChild(clone); // ← limpiamos el clon
 
-    pdf.setFontSize(16);
-    pdf.setTextColor(26, 46, 74);
-    pdf.text("Nexus Materia — Horario Semanal", 14, 16);
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pdfWidth = pdf.internal.pageSize.getWidth();
+  const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    pdf.setFontSize(10);
-    pdf.setTextColor(100);
-    pdf.text(`Alumno: ${usuario?.nombre ?? "—"}`, 14, 24);
-    pdf.text(`Generado el: ${fecha}`, 14, 30);
+  const fecha = new Date().toLocaleDateString("es-CL", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric"
+  });
 
-    const imgWidth = pdfWidth - 28;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+  pdf.setFontSize(16);
+  pdf.setTextColor(26, 46, 74);
+  pdf.text("Nexus Materia — Horario Semanal", 14, 16);
 
-    pdf.addImage(imgData, "PNG", 14, 36, imgWidth,
-      Math.min(imgHeight, pdfHeight - 46));
+  pdf.setFontSize(10);
+  pdf.setTextColor(100);
+  pdf.text(`Alumno: ${usuario?.nombre ?? "—"}`, 14, 24);
+  pdf.text(`Generado el: ${fecha}`, 14, 30);
 
-    pdf.save(`horario_${usuario?.nombre?.replace(/\s+/g, "_") ?? "alumno"}.pdf`);
-  };
+  const imgWidth = pdfWidth - 28;
+  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+  pdf.addImage(imgData, "PNG", 14, 36, imgWidth,
+    Math.min(imgHeight, pdfHeight - 46));
+
+  pdf.save(`horario_${usuario?.nombre?.replace(/\s+/g, "_") ?? "alumno"}.pdf`);
+};
 
   const rows = buildHorario();
 

@@ -168,10 +168,23 @@ export default function AdminSeccionesScreen() {
     };
 
     const handleEliminar = async (id) => {
-        await eliminarSeccionConHorarios(id);
-        mostrarMensaje("Sección eliminada correctamente");
-        await cargarTodo();
-    };
+      try {
+          const respuesta = await eliminarSeccionConHorarios(id);
+
+          console.log(respuesta);
+
+          if (respuesta === "Sección eliminada") {
+              mostrarMensaje("Sección eliminada correctamente");
+              await cargarTodo();
+          } else {
+              mostrarMensaje(respuesta);
+          }
+
+      } catch (error) {
+          console.error(error);
+          mostrarMensaje("Error eliminando sección");
+      }
+   };
 
     const horariosPorDia = (dia) => horarios.filter((h) => h.diaSemana === dia);
 
