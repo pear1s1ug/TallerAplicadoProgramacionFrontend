@@ -1,31 +1,14 @@
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 const generarHoras = (rows) => {
-  if (rows.length === 0) return [];
-
-  let minMin = Infinity;
-  let maxMin = -Infinity;
-
-  rows.forEach((row) => {
-    if (!row?.hora) return;
-    const [h, m] = row.hora.split(":").map(Number);
-    minMin = Math.min(minMin, h * 60 + m);
-
-    DIAS.forEach((dia) => {
-      if (row[dia]?.fin) {
-      const [fh, fm] = row[dia].fin.split(":").map(Number);
-        maxMin = Math.max(maxMin, fh * 60 + fm);
-      }
+  return rows
+    .map((r) => r?.hora)
+    .filter(Boolean)
+    .sort((a, b) => {
+      const [ah, am] = a.split(":").map(Number);
+      const [bh, bm] = b.split(":").map(Number);
+      return (ah * 60 + am) - (bh * 60 + bm);
     });
-  });
-
-  const horas = [];
-  for (let m = minMin; m < maxMin; m += 60) {
-    const h = Math.floor(m / 60).toString().padStart(2, "0");
-    const min = (m % 60).toString().padStart(2, "0");
-    horas.push(`${h}:${min}`);
-  }
-  return horas;
 };
 
 export default function HorarioTable({ rows = [] }) {
